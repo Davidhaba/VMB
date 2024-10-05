@@ -15,7 +15,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="alt.svg"
+   sodipodi:docname="info.svg"
    inkscape:export-filename="/home/ossman/devel/noVNC/images/drag.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
@@ -28,9 +28,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="16"
-     inkscape:cx="18.205425"
-     inkscape:cy="17.531398"
+     inkscape:zoom="1"
+     inkscape:cx="15.720838"
+     inkscape:cy="8.9111233"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -40,7 +40,7 @@
      inkscape:bbox-nodes="true"
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:object-paths="true"
-     showguides="true"
+     showguides="false"
      inkscape:window-width="1920"
      inkscape:window-height="1136"
      inkscape:window-x="1920"
@@ -63,7 +63,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -72,21 +72,10 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-1027.3622)">
-    <g
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:48px;line-height:125%;font-family:'DejaVu Sans';-inkscape-font-specification:'Sans Bold';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       id="text5290">
-      <path
-         d="m 9.9560547,1042.3329 -2.9394531,0 -0.4638672,1.3281 -1.8896485,0 2.7001953,-7.29 2.241211,0 2.7001958,7.29 -1.889649,0 -0.4589843,-1.3281 z m -2.4707031,-1.3526 1.9970703,0 -0.9960938,-2.9003 -1.0009765,2.9003 z"
-         style="font-size:10px;fill:#ffffff;fill-opacity:1"
-         id="path5340" />
-      <path
-         d="m 13.188477,1036.0634 1.748046,0 0,7.5976 -1.748046,0 0,-7.5976 z"
-         style="font-size:10px;fill:#ffffff;fill-opacity:1"
-         id="path5342" />
-      <path
-         d="m 18.535156,1036.6395 0,1.5528 1.801758,0 0,1.25 -1.801758,0 0,2.3193 q 0,0.3809 0.151367,0.5176 0.151368,0.1318 0.600586,0.1318 l 0.898438,0 0,1.25 -1.499024,0 q -1.035156,0 -1.469726,-0.4297 -0.429688,-0.4345 -0.429688,-1.4697 l 0,-2.3193 -0.86914,0 0,-1.25 0.86914,0 0,-1.5528 1.748047,0 z"
-         style="font-size:10px;fill:#ffffff;fill-opacity:1"
-         id="path5344" />
-    </g>
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 12.5 3 A 9.5 9.4999914 0 0 0 3 12.5 A 9.5 9.4999914 0 0 0 12.5 22 A 9.5 9.4999914 0 0 0 22 12.5 A 9.5 9.4999914 0 0 0 12.5 3 z M 12.5 5 A 1.5 1.5000087 0 0 1 14 6.5 A 1.5 1.5000087 0 0 1 12.5 8 A 1.5 1.5000087 0 0 1 11 6.5 A 1.5 1.5000087 0 0 1 12.5 5 z M 10.521484 8.9785156 L 12.521484 8.9785156 A 1.50015 1.50015 0 0 1 14.021484 10.478516 L 14.021484 15.972656 A 1.50015 1.50015 0 0 1 14.498047 18.894531 C 14.498047 18.894531 13.74301 19.228309 12.789062 18.912109 C 12.312092 18.754109 11.776235 18.366625 11.458984 17.828125 C 11.141734 17.289525 11.021484 16.668469 11.021484 15.980469 L 11.021484 11.980469 L 10.521484 11.980469 A 1.50015 1.50015 0 1 1 10.521484 8.9804688 L 10.521484 8.9785156 z "
+       transform="translate(0,1027.3622)"
+       id="path4136" />
   </g>
 </svg>
