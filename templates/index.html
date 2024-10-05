@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emulator Setup</title>
+</head>
+<body>
+    <h1>Emulator Setup</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="cpu">CPU:</label>
+        <input type="text" id="cpu" name="cpu" required><br><br>
+        
+        <label for="cores">Number of Cores:</label>
+        <input type="number" id="cores" name="cores" required><br><br>
+        
+        <label for="ram">RAM (MB):</label>
+        <input type="number" id="ram" name="ram" required><br><br>
+        
+        <label for="file">Choose ISO file:</label>
+        <input type="file" id="file" name="file" accept=".iso" required><br><br>
+        
+        <input type="submit" value="Upload and Start Emulator">
+    </form>
+</body>
+</html>
