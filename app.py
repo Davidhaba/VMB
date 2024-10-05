@@ -1,5 +1,5 @@
-
 from flask import Flask, render_template, request, redirect, url_for
+from flask_socketio import SocketIO, emit
 import os
 import subprocess
 
@@ -57,7 +57,7 @@ def upload_file():
 
 @app.route('/vnc')
 def vnc():
-    return redirect("http://5dc87d1c80836ea1e9.blackbx.ai:6084/vnc.html")
+    return redirect("https://vmb-z22j.onrender.com:6084/vnc.html")
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000)
