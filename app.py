@@ -4,6 +4,9 @@ import os
 import subprocess
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'mysecret'
+socketio = SocketIO(app)
+
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
