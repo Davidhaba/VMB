@@ -1,3 +1,4 @@
 qemu
 flask
+Flask-SocketIO
 eventlet
