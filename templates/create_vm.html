@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="{{ translations['lang'] }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ translations['create_vm'] }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>{{ translations['create_vm'] }}</h1>
+        <select id="language-selector" onchange="changeLanguage()">
+            <option value="en" {% if translations['lang'] == 'en' %}selected{% endif %}>English</option>
+            <option value="uk" {% if translations['lang'] == 'uk' %}selected{% endif %}>Українська</option>
+            <option value="es" {% if translations['lang'] == 'es' %}selected{% endif %}>Español</option>
+            <option value="de" {% if translations['lang'] == 'de' %}selected{% endif %}>Deutsch</option>
+        </select>
+    </header>
+    <form id="vm-form">
+        <div id="devices">
+            <h3 id="h3-one-form">{{ translations['add_devices_h3'] }}</h3>
+            <div class="device">
+                <label for="device_type">{{ translations['select_device_type'] }}</label>
+                <select class="device-type">
+                    <option value="cdrom">{{ translations['cd_rom'] }}</option>
+                    <option value="harddrive">{{ translations['hard_drive'] }}</option>
+                    <option value="floppydisk">{{ translations['floppy_disk'] }}</option>
+                </select>
+    
+                <label for="os">{{ translations['os_select'] }}:</label>
+                <select class="os-select" name="os" onchange="toggleSubmitButtonAndUpload(this)">
+                    <option value="upload" disabled selected>{{ translations['os_select'] }}</option>
+                    {% for image in os_images %}
+                        <option value="{{ image }}">{{ image }}</option>
+                    {% endfor %}
+                    <option value="upload">{{ translations['upload'] }} (.iso)</option>
+                </select>
+
+                <div class="upload-section" style="display: none;">
+                    <label for="file">{{ translations['iso_file'] }}</label>
+                    <input type="file" class="device-file" name="file" accept=".iso,.qcow2,.vmdk,.img">
+                </div>
+                <div class="disk-size-section" style="display: none;">
+                    <label for="disk_size_input">{{ translations['disk_size'] }}</label>
+                    <input type="number" class="disk-size-input" name="disk_size_input" min="1" required>
+                </div>        
+                <button type="button" class="remove-device" onclick="removeDevice(this);"><span>{{ translations['remove'] }}</span></button>
+            </div>
+        </div>
+        <button type="button" id="add-device"><span>{{ translations['add_device_btn'] }}</span></button>
+    
+        <label for="boot_device">{{ translations['select_device_to_download'] }}</label>
+        <select id="boot_device" name="boot_device">
+            <option value="" disabled selected>{{ translations['select_device'] }}</option>
+            <option value="cdrom">{{ translations['cd_rom'] }}</option>
+            <option value="disk">{{ translations['hard_drive'] }}</option>
+            <option value="floppydisk">{{ translations['floppy_disk'] }}</option>
+        </select>
+    
+        <h3>{{ translations['vm_settings'] }}</h3>
+    
+        <label for="cpu">{{ translations['cpu_cores'] }}</label>
+        <input type="number" id="cpu" name="cpu" value="2" min="1" required>
+    
+        <label for="ram">{{ translations['ram'] }}</label>
+        <input type="number" id="ram" name="ram" value="2048" min="100" required>
+
+        <button type="submit" id="submit-button" disabled><span>{{ translations['start'] }}</span></button>
+        <div class="check-message" id="check-message">
+            <div class="spinner"></div>
+            <span>{{ translations['checking_params'] }}</span>
+        </div>
+    </form>
+
+    <div id="loading-message">{{ translations['loading'] }}</div>
+    <div id="progress-bar">
+        <div id="progress"></div>
+    </div>
+
+    <script>
+
+document.getElementById('devices').addEventListener('change', function (event) {
+    if (event.target.classList.contains('device-type')) {
+        const deviceType = event.target.value;
+        const deviceContainer = event.target.closest('.device');
+        const osSelect = deviceContainer.querySelector('.os-select');
+        const uploadSection = deviceContainer.querySelector('.upload-section');
+        const diskSizeSection = deviceContainer.querySelector('.disk-size-section');
+        const diskSizeInput = diskSizeSection.querySelector('input');
+        osSelect.innerHTML = '';
+
+        if (deviceType === 'cdrom') {
+            let option;
+            {% for image in os_images %}
+                option = document.createElement('option');
+                option.value = "{{ image }}";
+                option.textContent = "{{ image }}";
+                osSelect.appendChild(option);
+            {% endfor %}
+            const uploadOption = document.createElement('option');
+            uploadOption.value = 'upload';
+            uploadOption.textContent = '{{ translations["upload"] }} (.iso)';
+            osSelect.appendChild(uploadOption);
+            if (uploadSection) uploadSection.style.display = 'none';
+            if (diskSizeSection) diskSizeSection.style.display = 'none';
+            diskSizeInput.required = false;
+        } else if (deviceType === 'harddrive') {
+            {% for image in harddrive_images %}
+                const option = document.createElement('option');
+                option.value = "{{ image }}";
+                option.textContent = "{{ image }}";
+                osSelect.appendChild(option);
+            {% endfor %}
+
+            const createDiskOption = document.createElement('option');
+            createDiskOption.value = 'create';
+            createDiskOption.textContent = 'Створити жорсткий диск';            
+            const uploadOption = document.createElement('option');
+            uploadOption.value = 'upload';
+            uploadOption.textContent = '{{ translations["upload"] }} (.qcow2, .vmdk)';
+            osSelect.appendChild(createDiskOption);
+            osSelect.appendChild(uploadOption);
+            if (uploadSection) uploadSection.style.display = 'none';
+            if (diskSizeSection) diskSizeSection.style.display = 'block';
+            diskSizeInput.required = true;
+        } else if (deviceType === 'floppydisk') {
+            {% for image in floppydisk_images %}
+                const option = document.createElement('option');
+                option.value = "{{ image }}";
+                option.textContent = "{{ image }}";
+                osSelect.appendChild(option);
+            {% endfor %}
+            const uploadOption = document.createElement('option');
+            uploadOption.value = 'upload';
+            uploadOption.textContent = '{{ translations["upload"] }} (.img)';
+            osSelect.appendChild(uploadOption);
+            if (uploadSection) uploadSection.style.display = 'none';
+            if (diskSizeSection) diskSizeSection.style.display = 'none';
+            diskSizeInput.required = false;
+        }
+
+        if (osSelect.value === 'upload') {
+            if (uploadSection) uploadSection.style.display = 'block';
+        } else {
+            if (uploadSection) uploadSection.style.display = 'none';
+        }
+    }
+});
+        var translations = {{ translations | tojson }};
+        function toggleSubmitButtonAndUpload(element) {
+            const device = element.closest('.device');
+            const uploadSection = device.querySelector('.upload-section');
+            const diskSizeSection = device.querySelector('.disk-size-section');
+            const diskSizeInput = diskSizeSection.querySelector('input');
+            if (element.value === 'upload') {
+                if (uploadSection) uploadSection.style.display = 'block';
+            } else {
+                if (uploadSection) uploadSection.style.display = 'none';
+            }
+            if (element.value === 'create') {
+                if (diskSizeSection) diskSizeSection.style.display = 'block';
+                diskSizeInput.required = true;
+            } else {
+                if (diskSizeSection) diskSizeSection.style.display = 'none';
+                diskSizeInput.required = false;
+            }
+        };
+
+        document.getElementById('add-device').addEventListener('click', function () {
+            const devicesContainer = document.getElementById('devices');
+            const newDevice = document.createElement('div');
+            newDevice.classList.add('device');
+            newDevice.innerHTML = `
+            <label for="device_type">{{ translations['select_device_type'] }}</label>
+                <select class="device-type">
+                    <option value="cdrom">{{ translations['cd_rom'] }}</option>
+                    <option value="harddrive">{{ translations['hard_drive'] }}</option>
+                    <option value="floppydisk">{{ translations['floppy_disk'] }}</option>
+                </select>
+    
+                <label for="os">{{ translations['os_select'] }}:</label>
+                <select class="os-select" name="os" onchange="toggleSubmitButtonAndUpload(this)">
+                    <option value="upload" disabled selected>{{ translations['os_select'] }}</option>
+                    {% for image in os_images %}
+                        <option value="{{ image }}">{{ image }}</option>
+                    {% endfor %}
+                    <option value="upload">{{ translations['upload'] }} (.iso)</option>
+                </select>
+
+                <div class="upload-section" style="display: none;">
+                    <label for="file">{{ translations['iso_file'] }}</label>
+                    <input type="file" class="device-file" name="file" accept=".iso,.qcow2,.vmdk,.img">
+                </div>
+                <div class="disk-size-section" style="display: none;">
+                    <label for="disk_size_input">{{ translations['disk_size'] }}</label>
+                    <input type="number" class="disk-size-input" name="disk_size_input" min="1" required>
+                </div>        
+                <button type="button" class="remove-device" onclick="removeDevice(this);"><span>{{ translations['remove'] }}</span></button>
+            `;
+            const osSelect = newDevice.querySelector('.os-select');
+            osSelect.addEventListener('change', function () {
+                const uploadSection = newDevice.querySelector('.upload-section');
+                const diskSizeSection = newDevice.querySelector('.disk-size-section');
+                const diskSizeInput = diskSizeSection.querySelector('input');
+                if (this.value === 'upload') {
+                    if (uploadSection) uploadSection.style.display = 'block';
+                    if (diskSizeSection) diskSizeSection.style.display = 'none';
+                    diskSizeInput.required = false;
+                } else if (this.value === 'create') {
+                    if (uploadSection) uploadSection.style.display = 'none';
+                    if (diskSizeSection) diskSizeSection.style.display = 'block';
+                    diskSizeInput.required = true;
+                } else {
+                    if (uploadSection) uploadSection.style.display = 'none';
+                    if (diskSizeSection) diskSizeSection.style.display = 'none';
+                    diskSizeInput.required = false;
+                }
+            });
+            devicesContainer.appendChild(newDevice);
+        });
+        function removeDevice(element) {
+            const devices = document.querySelectorAll('.device');
+            element.closest('.device').remove();
+            if (devices.length <= 1) {
+                document.getElementById('add-device').click();
+            }
+        }
+
+        const form = document.getElementById('vm-form');
+        const submitButton = document.getElementById('submit-button');
+        const checkMessage = document.getElementById('check-message');
+
+        function checkParameters() {
+            if (checkMessage) checkMessage.style.opacity = 1;
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            timeoutId = setTimeout(() => {
+                const isValid = validateForm();
+                if (checkMessage) checkMessage.style.opacity = 0;
+                if (isValid) {
+                    submitButton.disabled = false;
+                } else {
+                    submitButton.disabled = true;
+                }
+            }, 1000);
+        }
+        let timeoutId;
+        checkParameters();
+        function validateForm() {
+            const cpu = document.getElementById('cpu').value;
+            const ram = document.getElementById('ram').value;
+            const osSelect = document.querySelector('.os-select').value;
+            const deviceType = document.querySelector('.device-type').value;
+            const osIsCreate = osSelect === 'create';
+            const fileInput = document.querySelector('.device-file');
+            if (deviceType === 'harddrive' && osIsCreate) {
+                const diskSizeInput = document.querySelector('.disk-size-input');
+                if (!diskSizeInput || diskSizeInput.value <= 0) {
+                    return false;
+                }
+            }
+            if (osSelect === 'upload') {
+                if (!fileInput || fileInput.files.length === 0) {
+                    return false;
+                }
+            }
+            return cpu > 0 && ram > 0 && osSelect !== '' && deviceType !== '' && (!osIsCreate || deviceType !== 'harddrive' || diskSizeInput.value > 0);
+        }
+        form.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('input', () => {
+                submitButton.disabled = true;
+                checkParameters();
+            });
+        });
+
+        const loadingMessage = document.getElementById('loading-message');
+
+        form.onsubmit = async function (e) {
+            e.preventDefault();
+
+            if (loadingMessage) loadingMessage.style.display = 'block';
+            submitButton.disabled = true;
+
+            const formData = new FormData(this);
+            const devices = document.querySelectorAll('.device');
+            devices.forEach((device, index) => {
+                const deviceType = device.querySelector('.device-type').value;
+                const deviceFile = device.querySelector('.device-file').files[0];
+                if (deviceType === 'harddrive') {
+                    const diskSizeInput = device.querySelector('.disk-size-input').value;
+                    if (diskSizeInput) {
+                        formData.append(`device_${index}_disk_size`, diskSizeInput);
+                    }
+                }
+                if (deviceFile) {
+                    formData.append(`device_${index}_type`, deviceType);
+                    formData.append(`device_${index}_file`, deviceFile);
+                }
+            });
+
+            const response = await fetch('/create-vm', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                window.location.href = data.novnc_url;
+            } else {
+                alert(`${translations['error']}: ${data.error}`);
+                submitButton.disabled = false;
+                if (loadingMessage) loadingMessage.style.display = 'none';
+            }
+        };
+
+        document.querySelectorAll('.device-file').forEach(function(fileInput) {
+            fileInput.addEventListener('change', function () {
+                const progressBar = this.closest('.device').querySelector('.progress-bar');
+                const progress = this.closest('.device').querySelector('.progress');
+                const osSelect = this.closest('.device').querySelector('.os-select');  // Пошук відповідного селектора ОС
+
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const xhr = new XMLHttpRequest();
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    xhr.open('POST', '/upload', true);
+                    xhr.upload.onprogress = function (event) {
+                        if (event.lengthComputable) {
+                            const percentComplete = (event.loaded / event.total) * 100;
+                            if (progress) progress.style.width = percentComplete + '%';
+                        }
+                    };
+
+                    xhr.onload = function () {
+                        if (progressBar) progressBar.style.display = 'none';
+                        const response = JSON.parse(xhr.responseText);
+
+                        if (xhr.status === 200 && response.success) {
+                            alert(translations['file_downloaded_successfully']);
+                            
+                            const newOption = document.createElement('option');
+                            const newNameFileUploaded = "(uploaded) " + file.name;
+                            newOption.value = newNameFileUploaded;
+                            newOption.textContent = newNameFileUploaded;
+
+                            osSelect.appendChild(newOption);
+                            osSelect.value = newNameFileUploaded;
+                        } else {
+                            alert(translations['file_downloaded_error']);
+                        }
+                    };
+
+                    if (progressBar) progressBar.style.display = 'block';
+                    xhr.send(formData);
+                }
+            });
+        });
+        function changeLanguage() {
+            const lang = document.getElementById('language-selector').value;
+            window.location.search = `?lang=${lang}`;
+        }
+    </script>
+</body>
+</html>

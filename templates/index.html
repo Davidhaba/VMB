@@ -1,27 +1,62 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ language }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emulator Setup</title>
+    <title>{{ translations['welcome'] }}</title>
+    <link rel="stylesheet" href="static/styles.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Emulator Setup</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <label for="cpu">CPU:</label>
-        <input type="text" id="cpu" name="cpu" required><br><br>
-        
-        <label for="cores">Number of Cores:</label>
-        <input type="number" id="cores" name="cores" required><br><br>
-        
-        <label for="ram">RAM (MB):</label>
-        <input type="number" id="ram" name="ram" required><br><br>
-        
-        <label for="file">Choose ISO file:</label>
-        <input type="file" id="file" name="file" accept=".iso" required><br><br>
-        
-        <input type="submit" value="Upload and Start Emulator">
-    </form>
+    <header>
+        <h1>{{ translations['welcome'] }}</h1>
+        <select id="language-selector" onchange="changeLanguage()">
+            <option value="en" {% if translations['lang'] == 'en' %}selected{% endif %}>English</option>
+            <option value="uk" {% if translations['lang'] == 'uk' %}selected{% endif %}>Українська</option>
+            <option value="es" {% if translations['lang'] == 'es' %}selected{% endif %}>Español</option>
+            <option value="de" {% if translations['lang'] == 'de' %}selected{% endif %}>Deutsch</option>
+        </select>
+    </header>
+
+    <main>
+        <section>
+            <h2>{{ translations['about'] }}</h2>
+            <p>{{ translations['description'] }}</p>
+
+            <h3>{{ translations['features'] }}</h3>
+            <ul>
+                <li>{{ translations['feature_os_select'] }}</li>
+                <li>{{ translations['feature_cpu_cores'] }}</li>
+                <li>{{ translations['feature_ram'] }}</li>
+                <li>{{ translations['feature_disk_size'] }}</li>
+            </ul>            
+        </section>
+
+        <section>
+            <h2>{{ translations['start'] }}</h2>
+            <p>{{ translations['to_start'] }}</p>
+            <p>
+                <a href="/create-vm-page?lang={{ translations['lang'] }}" class="button"><span>{{ translations['create_vm'] }}</span></a>
+            </p>
+        </section>
+    </main>
+
+    <footer>
+        <p>{{ translations['footer'] }}</p>
+    </footer>
+
+    <script>
+        function changeLanguage() {
+            const lang = document.getElementById('language-selector').value;
+            window.location.search = `?lang=${lang}`;
+        }
+    </script>
 </body>
 </html>
