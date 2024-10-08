@@ -2,4 +2,3 @@ qemu
 Flask
 Flask-SocketIO
 eventlet
-from translations import translations
