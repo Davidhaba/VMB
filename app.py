@@ -1,16 +1,13 @@
 from flask import Flask, render_template, jsonify, request
-from flask_socketio import SocketIO, emit
-import os
-import subprocess
-import socket
+from flask_socketio import SocketIO
 from translations import translations
+import os, subprocess, socket
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'mysecret'
-socketio = SocketIO(app)
-
 available_languages = ['en', 'uk', 'es', 'de']
 not_found_language = 'The requested language was not found on the server. If you entered the URL manually please check your spelling and try again.'
+not_found_url = 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.'
+
 UPLOAD_FOLDER = './OS-fromUsers'
 FILES_FOLDER = './Windows/'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -26,7 +23,7 @@ def find_free_port(start_port=5900):
 
 def start_novnc(vnc_port):
     subprocess.Popen([
-        'sudo ./NoVNC/utils/novnc_proxy',
+        'novnc.exe',
         '--target', f'localhost:{vnc_port}',
         '--listen', f'0.0.0.0:{vnc_port + 10}',
     ])
@@ -34,13 +31,33 @@ def start_novnc(vnc_port):
 def get_language():
     return request.args.get('lang', 'en')
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('not_found.html', message=not_found_url, code=404), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('not_found.html', message="Internal server error", code=500), 500
+
+@app.errorhandler(403)
+def forbidden_error(e):
+    return render_template('not_found.html', message="Forbidden", code=403), 403
+
+@app.errorhandler(400)
+def bad_request(e):
+    return render_template('not_found.html', message="Bad Request", code=400), 400
+
+@app.errorhandler(408)
+def request_timeout(e):
+    return render_template('not_found.html', message="Request Timeout", code=408), 408
+
 @app.route('/')
 def index():
     lang = get_language()
     if lang in available_languages:
         return render_template('index.html', translations=translations[lang])
     else:
-        return render_template('not_found.html', message=not_found_language)
+        return render_template('not_found.html', message=not_found_language, code=404), 404
 
 @app.route('/create-vm-page', methods=['GET'])
 def create_vm_page():
@@ -49,7 +66,7 @@ def create_vm_page():
     if lang in available_languages:
         return render_template('create_vm.html', os_images=os_images, translations=translations[lang])
     else:
-        return render_template('not_found.html', message=not_found_language)
+        return render_template('not_found.html', message=not_found_language, code=404), 404
 
 @app.route('/create-vm', methods=['POST'])
 def create_vm():
@@ -78,10 +95,10 @@ def create_vm():
                 return jsonify({'success': False, 'error': f'Failed to create hard disk: {str(e)}'})
 
         qemu_command = [
-            './qemu/qemu-system-x86_64.exe',
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'qemu', 'qemu-system-x86_64.exe'),
             '-m', str(ram_size),
             '-smp', str(cpu_cores),
-            '-vnc', f':{vnc_display}',
+            '-vnc', f'localhost:{vnc_display}',
         ]
         if os_image_path:
             qemu_command.extend(['-cdrom', os_image_path])
@@ -114,7 +131,6 @@ def create_vm():
             qemu_command.extend(['-boot', 'f'])  # Boot from floppy
         else:
             qemu_command.extend(['-boot', 'c'])
-
         subprocess.Popen(qemu_command, shell=True)
         start_novnc(vnc_port)
         return jsonify({'success': True, 'novnc_url': f'http://localhost:{vnc_port + 10}'})
@@ -144,4 +160,4 @@ def upload():
     return jsonify({'success': False})
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    SocketIO(app).run(app, host='0.0.0.0', port=5000)
