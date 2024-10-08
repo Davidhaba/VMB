@@ -1,10 +1,13 @@
 from flask import Flask, render_template, jsonify, request
+from flask_socketio import SocketIO, emit
 import os
 import subprocess
 import socket
 from translations import translations
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'mysecret'
+socketio = SocketIO(app)
 
 available_languages = ['en', 'uk', 'es', 'de']
 not_found_language = 'The requested language was not found on the server. If you entered the URL manually please check your spelling and try again.'
