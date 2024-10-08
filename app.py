@@ -25,10 +25,11 @@ def find_free_port(start_port=5900):
 
 def start_novnc(vnc_port):
     script_dir = os.path.dirname(__file__)
-    novnc_path = os.path.join(script_dir, 'novnc.exe')
+    novnc_dir = os.path.join(script_dir)
+    os.environ["PATH"] += os.pathsep + novnc_dir
 
     subprocess.Popen([
-        novnc_path,
+        'novnc.exe',
         '--target', f'localhost:{vnc_port}',
         '--listen', f'0.0.0.0:{vnc_port + 10}',
     ])
