@@ -33,7 +33,7 @@ def upload_file():
         
         # Run QEMU with the provided parameters
         qemu_command = [
-            'qemu-system-x86_64',
+            './qemu/qemu-system-x86_64',
             '-cpu', cpu,
             '-smp', cores,
             '-m', ram,
