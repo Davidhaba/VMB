@@ -75,7 +75,7 @@ def create_vm():
                 return jsonify({'success': False, 'error': f'Failed to create hard disk: {str(e)}'})
 
         qemu_command = [
-            './QEMU/qemu-system-x86_64.exe',
+            './qemu/qemu-system-x86_64.exe',
             '-m', str(ram_size),
             '-smp', str(cpu_cores),
             '-vnc', f':{vnc_display}',
