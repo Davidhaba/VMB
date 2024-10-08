@@ -9,7 +9,9 @@ not_found_language = 'The requested language was not found on the server. If you
 not_found_url = 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.'
 
 UPLOAD_FOLDER = './OS-fromUsers'
-FILES_FOLDER = './Windows/'
+FILES_FOLDER = './Windows'
+disks_dir = './Disks'
+os.makedirs(disks_dir, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def find_free_port(start_port=5900):
@@ -82,18 +84,6 @@ def create_vm():
 
         os_image_path = os.path.join(UPLOAD_FOLDER, os_image) if os_image.startswith('(uploaded)') else os.path.join(FILES_FOLDER, os_image)
 
-        disk_image = None
-        if 'harddrive' in data:
-            disk_size = data.get('disk_size')
-            disk_image = os.path.join('./Disks', f'disk_image_{vnc_port}.qcow2')
-            create_disk_command = [
-                'qemu-img', 'create', '-f', 'qcow2', disk_image, f'{disk_size}G'
-            ]
-            try:
-                subprocess.run(create_disk_command, check=True)
-            except subprocess.CalledProcessError as e:
-                return jsonify({'success': False, 'error': f'Failed to create hard disk: {str(e)}'})
-
         qemu_command = [
             os.path.join(os.path.dirname(os.path.abspath(__file__)), 'qemu', 'qemu-system-x86_64.exe'),
             '-m', str(ram_size),
@@ -102,24 +92,33 @@ def create_vm():
         ]
         if os_image_path:
             qemu_command.extend(['-cdrom', os_image_path])
-        if disk_image:
-            qemu_command.extend(['-hda', disk_image])
 
         index = 0
+        disk_count = 0
         while True:
             device_type = data.get(f'device_{index}_type')
-            device_file = request.files.get(f'device_{index}_file')
-
             if not device_type:
                 break
+            
+            if device_type == 'harddrive':
+                disk_size = data.get(f'device_{index}_disk_size')
+                if disk_size:
+                    disk_image = os.path.join(disks_dir, f'disk_image_{vnc_port}_{disk_count}.qcow2')
+                    try:
+                        subprocess.run(['qemu-img', 'create', '-f', 'qcow2', disk_image, f'{disk_size}G'], check=True)
+                        disk_device = f'-hd{chr(97 + disk_count)}'
+                        if disk_count < 2:
+                            qemu_command.extend([disk_device, disk_image])
+                        disk_count += 1
+                    except subprocess.CalledProcessError as e:
+                        return jsonify({'success': False, 'error': f'Failed to create hard disk: {str(e)}'})
 
+            device_file = request.files.get(f'device_{index}_file')
             if device_file:
                 device_file_path = os.path.join(UPLOAD_FOLDER, device_file.filename)
                 device_file.save(device_file_path)
                 if device_type == 'cdrom':
                     qemu_command.extend(['-cdrom', device_file_path])
-                elif device_type == 'harddrive':
-                    qemu_command.extend(['-hdb', device_file_path])
                 elif device_type == 'floppydisk':
                     qemu_command.extend(['-fda', device_file_path])
 
@@ -130,23 +129,12 @@ def create_vm():
         elif boot_device == 'floppydisk':
             qemu_command.extend(['-boot', 'f'])  # Boot from floppy
         else:
-            qemu_command.extend(['-boot', 'c'])
+            qemu_command.extend(['-boot', 'c'])  # Boot from Hard Disk
         subprocess.Popen(qemu_command, shell=True)
         start_novnc(vnc_port)
         return jsonify({'success': True, 'novnc_url': f'http://localhost:{vnc_port + 10}'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
-@app.route('/connect-vm', methods=['POST'])
-def connect_vm():
-    data = request.json
-    existing_port = int(data.get('existing_port'))
-    existing_password = data.get('existing_password')
-
-    return jsonify({
-        'success': True,
-        'novnc_url': f'http://localhost:{existing_port}'
-    })
 
 @app.route('/upload', methods=['POST'])
 def upload():

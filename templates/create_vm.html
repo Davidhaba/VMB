@@ -5,14 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ translations['create_vm'] }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-    </style>
 </head>
 <body>
     <header>
@@ -25,8 +17,8 @@
         </select>
     </header>
     <form id="vm-form">
+        <h3 id="h3-one-form">{{ translations['add_devices_h3'] }}</h3>
         <div id="devices">
-            <h3 id="h3-one-form">{{ translations['add_devices_h3'] }}</h3>
             <div class="device">
                 <label for="device_type">{{ translations['select_device_type'] }}</label>
                 <select class="device-type">
@@ -122,7 +114,7 @@ document.getElementById('devices').addEventListener('change', function (event) {
 
             const createDiskOption = document.createElement('option');
             createDiskOption.value = 'create';
-            createDiskOption.textContent = 'Створити жорсткий диск';            
+            createDiskOption.textContent = 'Створити жорсткий диск';
             const uploadOption = document.createElement('option');
             uploadOption.value = 'upload';
             uploadOption.textContent = '{{ translations["upload"] }} (.qcow2, .vmdk)';
@@ -295,14 +287,16 @@ document.getElementById('devices').addEventListener('change', function (event) {
             devices.forEach((device, index) => {
                 const deviceType = device.querySelector('.device-type').value;
                 const deviceFile = device.querySelector('.device-file').files[0];
+                formData.append(`device_${index}_type`, deviceType);
+
                 if (deviceType === 'harddrive') {
                     const diskSizeInput = device.querySelector('.disk-size-input').value;
                     if (diskSizeInput) {
                         formData.append(`device_${index}_disk_size`, diskSizeInput);
                     }
                 }
+
                 if (deviceFile) {
-                    formData.append(`device_${index}_type`, deviceType);
                     formData.append(`device_${index}_file`, deviceFile);
                 }
             });
