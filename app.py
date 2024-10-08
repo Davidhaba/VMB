@@ -24,9 +24,12 @@ def find_free_port(start_port=5900):
             port += 1
 
 def start_novnc(vnc_port):
-    novnc_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'novnc.exe')
+    novnc_directory = os.path.dirname(os.path.abspath(__file__))  # директорія з файлом novnc.exe
+    current_path = os.environ.get('PATH', '')
+    os.environ['PATH'] = f"{novnc_directory};{current_path}"  # додавання директорії в PATH
+
     subprocess.Popen([
-        novnc_path,
+        'novnc.exe',
         '--target', f'localhost:{vnc_port}',
         '--listen', f'0.0.0.0:{vnc_port + 10}',
     ])
