@@ -1,4 +1,3 @@
-qemu
 Flask
 Flask-SocketIO
 eventlet
