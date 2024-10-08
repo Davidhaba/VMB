@@ -132,7 +132,7 @@ def create_vm():
             qemu_command.extend(['-boot', 'c'])  # Boot from Hard Disk
         subprocess.Popen(qemu_command, shell=True)
         start_novnc(vnc_port)
-        return jsonify({'success': True, 'novnc_url': f'http://localhost:{vnc_port + 10}'})
+        return jsonify({'success': True, 'novnc_url': f'https://vmb-30i9.onrender.com:{vnc_port + 10}'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
