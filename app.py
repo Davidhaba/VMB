@@ -26,7 +26,7 @@ def find_free_port(start_port=5900):
 
 def start_novnc(vnc_port):
     subprocess.Popen([
-        './NoVNC',
+        './NoVNC/utils/novnc_proxy',
         '--target', f'localhost:{vnc_port}',
         '--listen', f'0.0.0.0:{vnc_port + 10}',
     ])
