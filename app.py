@@ -24,10 +24,7 @@ def find_free_port(start_port=5900):
             port += 1
 
 def start_novnc(vnc_port):
-    script_dir = os.path.dirname(__file__)
-    novnc_path = os.path.join(script_dir, 'novnc.exe')
-    os.environ["PATH"] += os.pathsep + script_dir
-    subprocess.Popen([novnc_path, '--target', f'localhost:{vnc_port}', '--listen', f'0.0.0.0:{vnc_port + 10}'], shell=True)
+    subprocess.Popen(['novnc', '--target', f'localhost:{vnc_port}', '--listen', f'0.0.0.0:{vnc_port + 10}'], shell=True)
 
 def get_language():
     return request.args.get('lang', 'en')
@@ -84,7 +81,7 @@ def create_vm():
         os_image_path = os.path.join(UPLOAD_FOLDER, os_image) if os_image.startswith('(uploaded)') else os.path.join(FILES_FOLDER, os_image)
 
         qemu_command = [
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'qemu', 'qemu-system-x86_64.exe'),
+            'qemu-system-x86_64',
             '-m', str(ram_size),
             '-smp', str(cpu_cores),
             '-vnc', f'localhost:{vnc_display}',
@@ -131,7 +128,7 @@ def create_vm():
             qemu_command.extend(['-boot', 'c'])  # Boot from Hard Disk
         subprocess.Popen(qemu_command, shell=True)
         start_novnc(vnc_port)
-        return jsonify({'success': True, 'novnc_url': f'https://vmb-30i9.onrender.com:{vnc_port + 10}'})
+        return jsonify({'success': True, 'novnc_url': f'http://localhost:{vnc_port + 10}'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
