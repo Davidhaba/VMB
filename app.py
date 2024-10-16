@@ -78,16 +78,25 @@ def create_vm():
         ram_size = data.get('ram')
         boot_device = data.get('boot_device')
 
+        # New parameters
+        cpu_arch = data.get('cpu_arch')
+        cpu_threads = data.get('cpu_threads')
+        network_type = data.get('network')
+        display_type = data.get('display')
+        disk_interface = data.get('disk_interface')
+
         vnc_port = find_free_port()
         vnc_display = vnc_port - 5900
 
         os_image_path = os.path.join(UPLOAD_FOLDER, os_image) if os_image.startswith('(uploaded)') else os.path.join(FILES_FOLDER, os_image)
 
         qemu_command = [
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'qemu', 'qemu-system-x86_64.exe'),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'qemu', 'qemu-system-' + cpu_arch + '.exe'),  # CPU architecture
             '-m', str(ram_size),
-            '-smp', str(cpu_cores),
+            '-smp', f'cores={cpu_cores},threads={cpu_threads}',  # CPU cores and threads
             '-vnc', f'localhost:{vnc_display}',
+            '-net', f'nic,model={network_type}',  # Network type
+            '-display', display_type,  # Display type
         ]
         if os_image_path:
             qemu_command.extend(['-cdrom', os_image_path])
@@ -105,9 +114,8 @@ def create_vm():
                     disk_image = os.path.join(disks_dir, f'disk_image_{vnc_port}_{disk_count}.qcow2')
                     try:
                         subprocess.run(['qemu-img', 'create', '-f', 'qcow2', disk_image, f'{disk_size}G'], check=True)
-                        disk_device = f'-hd{chr(97 + disk_count)}'
-                        if disk_count < 2:
-                            qemu_command.extend([disk_device, disk_image])
+                        disk_device = f'-drive file={disk_image},if={disk_interface},format=qcow2'  # Disk interface
+                        qemu_command.append(disk_device)
                         disk_count += 1
                     except subprocess.CalledProcessError as e:
                         return jsonify({'success': False, 'error': f'Failed to create hard disk: {str(e)}'})
