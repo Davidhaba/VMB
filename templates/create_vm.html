@@ -14,6 +14,8 @@
             <option value="uk" {% if translations['lang'] == 'uk' %}selected{% endif %}>Українська</option>
             <option value="es" {% if translations['lang'] == 'es' %}selected{% endif %}>Español</option>
             <option value="de" {% if translations['lang'] == 'de' %}selected{% endif %}>Deutsch</option>
+            <option value="ru" {% if translations['lang'] == 'ru' %}selected{% endif %}>Русский</option>
+            <option value="pl" {% if translations['lang'] == 'pl' %}selected{% endif %}>Polski</option>
         </select>
     </header>
     <form id="vm-form">
@@ -26,7 +28,7 @@
                     <option value="harddrive">{{ translations['hard_drive'] }}</option>
                     <option value="floppydisk">{{ translations['floppy_disk'] }}</option>
                 </select>
-    
+
                 <label for="os">{{ translations['os_select'] }}:</label>
                 <select class="os-select" name="os" onchange="toggleSubmitButtonAndUpload(this)">
                     <option value="upload" disabled selected>{{ translations['os_select'] }}</option>
@@ -43,12 +45,12 @@
                 <div class="disk-size-section" style="display: none;">
                     <label for="disk_size_input">{{ translations['disk_size'] }}</label>
                     <input type="number" class="disk-size-input" name="disk_size_input" min="1" required>
-                </div>        
+                </div>
                 <button type="button" class="remove-device" onclick="removeDevice(this);"><span>{{ translations['remove'] }}</span></button>
             </div>
         </div>
         <button type="button" id="add-device"><span>{{ translations['add_device_btn'] }}</span></button>
-    
+
         <label for="boot_device">{{ translations['select_device_to_download'] }}</label>
         <select id="boot_device" name="boot_device">
             <option value="" disabled selected>{{ translations['select_device'] }}</option>
@@ -56,14 +58,97 @@
             <option value="disk">{{ translations['hard_drive'] }}</option>
             <option value="floppydisk">{{ translations['floppy_disk'] }}</option>
         </select>
-    
+
         <h3>{{ translations['vm_settings'] }}</h3>
-    
+
+        <!-- CPU architecture -->
+        <label for="cpu_arch">{{ translations['cpu_architecture'] }}</label>
+        <select id="cpu_arch" name="cpu_arch">
+            <option value="x86_64" selected>x86-64</option>
+            <option value="arm">ARM</option>
+            <option value="aarch64">AARCH64</option>
+        </select>
+
+        <!-- CPU cores -->
         <label for="cpu">{{ translations['cpu_cores'] }}</label>
-        <input type="number" id="cpu" name="cpu" value="2" min="1" required>
-    
+        <input type="number" id="cpu" name="cpu" value="2" min="1" max="200" required>
+
+        <!-- CPU threads -->
+        <label for="cpu_threads">{{ translations['cpu_threads'] }}</label>
+        <input type="number" id="cpu_threads" name="cpu_threads" value="1" min="1">
+
+        <!-- CPU option -->
+        <label for="cpu_option">{{ translations['cpu_option'] }}</label>
+        <select id="cpu_option" name="cpu_option">
+            <option value="max">max</option> <!-- aarch64, arm, x86_64 -->
+            <option value="host">host</option> <!-- aarch64, x86_64 -->
+            <option value="arm946">arm946</option> <!-- aarch64, arm -->
+            <option value="cortex-a72">cortex-a72</option> <!-- aarch64 -->
+            <option value="cortex-a53">cortex-m55</option> <!-- aarch64, arm -->
+            <option value="cortex-a15">cortex-a15</option> <!-- aarch64, arm -->
+            <option value="core2duo">core2duo</option> <!-- x86_64 -->
+            <option value="core2duo-v1">core2duo-v1</option> <!-- x86_64 -->
+            <option value="kvm32">kvm32</option> <!-- x86_64 -->
+            <option value="kvm32-v1">kvm32-v1</option> <!-- x86_64 -->
+            <option value="kvm64">kvm64</option> <!-- x86_64 -->
+            <option value="kvm64-v1">kvm64-v1</option> <!-- x86_64 -->
+            <option value="n270">n270</option> <!-- x86_64 -->
+            <option value="n270-v1">n270-v1</option> <!-- x86_64 -->
+            <option value="pentium">pentium</option> <!-- x86_64 -->
+            <option value="pentium2">pentium2</option> <!-- x86_64 -->
+            <option value="pentium3">pentium3</option> <!-- x86_64 -->
+            <option value="base">base</option> <!-- x86_64 -->
+        </select>
+
+        <!-- Topoext -->
+        <label for="topoext">Topoext CPU</label>
+        <label class="switch">
+            <input type="checkbox" id="topoext" name="topoext" value="on">
+            <span class="slider"></span>
+        </label>
+
+        <!-- Machine type -->
+        <label for="machine_type">{{ translations['machine_type'] }}</label>
+        <select id="machine_type" name="machine_type">
+            <option value="none">none</option>
+            <option value="virt" selected>virt</option>
+            <option value="virt,accel=tcg">virt (TCG)</option>
+            <option value="virt,accel=kvm">virt (KVM)</option>
+            <option value="vexpress-a15">vexpress-a15</option>
+            <option value="pc">pc</option>
+            <option value="q35">q35</option>
+            <option value="isapc">isapc</option>
+            <option value="microvm">microvm</option>
+            <option value="mps3-an547">mps3-an547</option>
+        </select>
+
+        <!-- RAM size -->
         <label for="ram">{{ translations['ram'] }}</label>
         <input type="number" id="ram" name="ram" value="2048" min="100" required>
+
+        <!-- Network type -->
+        <label for="network">{{ translations['network_type'] }}</label>
+        <select id="network" name="network">
+            <option value="none">none</option>
+            <option value="user">user</option>
+        </select>
+
+        <!-- Audio type -->
+        <label for="audio">{{ translations['audio_type'] }}</label>
+        <select id="audio" name="audio">
+            <option value="none">none</option>
+            <option value="AC97">AC97</option>
+            <option value="intel-hda">Intel HDA</option>
+            <option value="sb16">SoundBlaster 16</option>
+        </select>
+
+        <!-- Disk interface -->
+        <label for="disk_interface">{{ translations['disk_interface'] }}</label>
+        <select id="disk_interface" name="disk_interface">
+            <option value="virtio" selected>VirtIO</option>
+            <option value="ide">IDE</option>
+            <option value="sata">SATA</option>
+        </select>
 
         <button type="submit" id="submit-button" disabled><span>{{ translations['start'] }}</span></button>
         <div class="check-message" id="check-message">
@@ -114,7 +199,7 @@ document.getElementById('devices').addEventListener('change', function (event) {
 
             const createDiskOption = document.createElement('option');
             createDiskOption.value = 'create';
-            createDiskOption.textContent = 'Створити жорсткий диск';
+            createDiskOption.textContent = '{{ translations["create_harddrive"] }}';
             const uploadOption = document.createElement('option');
             uploadOption.value = 'upload';
             uploadOption.textContent = '{{ translations["upload"] }} (.qcow2, .vmdk)';
@@ -177,7 +262,7 @@ document.getElementById('devices').addEventListener('change', function (event) {
                     <option value="harddrive">{{ translations['hard_drive'] }}</option>
                     <option value="floppydisk">{{ translations['floppy_disk'] }}</option>
                 </select>
-    
+
                 <label for="os">{{ translations['os_select'] }}:</label>
                 <select class="os-select" name="os" onchange="toggleSubmitButtonAndUpload(this)">
                     <option value="upload" disabled selected>{{ translations['os_select'] }}</option>
@@ -194,7 +279,7 @@ document.getElementById('devices').addEventListener('change', function (event) {
                 <div class="disk-size-section" style="display: none;">
                     <label for="disk_size_input">{{ translations['disk_size'] }}</label>
                     <input type="number" class="disk-size-input" name="disk_size_input" min="1" required>
-                </div>        
+                </div>
                 <button type="button" class="remove-device" onclick="removeDevice(this);"><span>{{ translations['remove'] }}</span></button>
             `;
             const osSelect = newDevice.querySelector('.os-select');
@@ -231,48 +316,84 @@ document.getElementById('devices').addEventListener('change', function (event) {
         const checkMessage = document.getElementById('check-message');
 
         function checkParameters() {
-            if (checkMessage) checkMessage.style.opacity = 1;
+            if (checkMessage) checkMessage.style.cssText = "opacity: 1; cursor: progress;";
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
             timeoutId = setTimeout(() => {
                 const isValid = validateForm();
-                if (checkMessage) checkMessage.style.opacity = 0;
+                if (checkMessage) checkMessage.style.cssText = "opacity: 0; cursor: default;";
                 if (isValid) {
                     submitButton.disabled = false;
                 } else {
                     submitButton.disabled = true;
                 }
-            }, 1000);
+            }, 500);
         }
         let timeoutId;
         checkParameters();
+
         function validateForm() {
             const cpu = document.getElementById('cpu').value;
             const ram = document.getElementById('ram').value;
-            const osSelect = document.querySelector('.os-select').value;
-            const deviceType = document.querySelector('.device-type').value;
-            const osIsCreate = osSelect === 'create';
-            const fileInput = document.querySelector('.device-file');
-            if (deviceType === 'harddrive' && osIsCreate) {
-                const diskSizeInput = document.querySelector('.disk-size-input');
-                if (!diskSizeInput || diskSizeInput.value <= 0) {
-                    return false;
-                }
-            }
-            if (osSelect === 'upload') {
-                if (!fileInput || fileInput.files.length === 0) {
-                    return false;
-                }
-            }
-            return cpu > 0 && ram > 0 && osSelect !== '' && deviceType !== '' && (!osIsCreate || deviceType !== 'harddrive' || diskSizeInput.value > 0);
+            const cpuThreads = document.getElementById('cpu_threads').value;
+            const network = document.getElementById('network').value;
+            const diskInterface = document.getElementById('disk_interface').value;
+            const bootDevice = document.getElementById('boot_device').value;
+
+            return cpu > 0 && ram > 0 && cpuThreads > 0 && network !== '' && diskInterface !== '' && bootDevice !== '';
         }
+
         form.querySelectorAll('input, select').forEach(input => {
             input.addEventListener('input', () => {
                 submitButton.disabled = true;
                 checkParameters();
             });
         });
+
+        function updateFormArchOptions() {
+            const cpuArch = document.getElementById('cpu_arch').value;
+            const machineTypeSelect = document.getElementById('machine_type');
+            const cpuTypeSelect = document.getElementById('cpu_option');
+            const optionsMachine = {
+                'x86_64': ['pc', 'q35', 'microvm', 'isapc'],
+                'arm': ['virt', 'virt,accel=kvm', 'virt,accel=tcg', 'vexpress-a15', 'mps3-an547'],
+                'aarch64': ['virt', 'virt,accel=kvm', 'virt,accel=tcg', 'vexpress-a15', 'mps3-an547'],
+            };
+            const optionsCpu = {
+                'x86_64': ['max', 'host', 'core2duo', 'core2duo-v1', 'kvm32', 'kvm32-v1', 'kvm64', 'kvm64-v1', 'n270', 'n270-v1', 'pentium', 'pentium2', 'pentium3', 'base'],
+                'arm': ['max', 'arm946', 'cortex-a53', 'cortex-a15'],
+                'aarch64': ['max', 'host', 'arm946', 'cortex-a72', 'cortex-a53', 'cortex-a15'],
+            };
+            const availableOptionsMachine = optionsMachine[cpuArch] || [];
+            const availableOptionsCpu = optionsCpu[cpuArch] || [];
+            for (let i = 0; i < machineTypeSelect.options.length; i++) {
+                const optionMachine = machineTypeSelect.options[i];
+                if (availableOptionsMachine.includes(optionMachine.value) || optionMachine.value === 'none') {
+                    optionMachine.disabled = false;
+                } else {
+                    optionMachine.disabled = true;
+                }
+            }
+            for (let i = 0; i < cpuTypeSelect.options.length; i++) {
+                const optionCpu = cpuTypeSelect.options[i];
+                if (availableOptionsCpu.includes(optionCpu.value) || optionCpu.value === 'max') {
+                    optionCpu.disabled = false;
+                } else {
+                    optionCpu.disabled = true;
+                }
+            }
+
+            if (!availableOptionsMachine.includes(machineTypeSelect.value) && machineTypeSelect.value !== 'none') {
+                machineTypeSelect.value = 'none';
+            }
+            if (!availableOptionsCpu.includes(cpuTypeSelect.value) && cpuTypeSelect.value !== 'max') {
+                cpuTypeSelect.value = 'max';
+            }
+        }
+
+        updateFormArchOptions();
+        document.getElementById('cpu_arch').addEventListener('change', updateFormArchOptions);
 
         const loadingMessage = document.getElementById('loading-message');
 
@@ -320,7 +441,7 @@ document.getElementById('devices').addEventListener('change', function (event) {
             fileInput.addEventListener('change', function () {
                 const progressBar = this.closest('.device').querySelector('.progress-bar');
                 const progress = this.closest('.device').querySelector('.progress');
-                const osSelect = this.closest('.device').querySelector('.os-select');  // Пошук відповідного селектора ОС
+                const osSelect = this.closest('.device').querySelector('.os-select'); // Пошук відповідного селектора ОС
 
                 if (fileInput.files.length > 0) {
                     const file = fileInput.files[0];
@@ -342,7 +463,7 @@ document.getElementById('devices').addEventListener('change', function (event) {
 
                         if (xhr.status === 200 && response.success) {
                             alert(translations['file_downloaded_successfully']);
-                            
+
                             const newOption = document.createElement('option');
                             const newNameFileUploaded = "(uploaded) " + file.name;
                             newOption.value = newNameFileUploaded;
