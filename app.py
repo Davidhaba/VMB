@@ -4,7 +4,7 @@ from translations import translations
 import os, subprocess, socket
 
 app = Flask(__name__)
-available_languages = ['en', 'uk', 'es', 'de']
+available_languages = ['en', 'uk', 'es', 'de', 'ru', 'pl']
 not_found_language = 'The requested language was not found on the server. If you entered the URL manually please check your spelling and try again.'
 not_found_url = 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.'
 
@@ -24,10 +24,13 @@ def find_free_port(start_port=5900):
             port += 1
 
 def start_novnc(vnc_port):
+    subprocess.Popen(['novnc', '--target', f'localhost:{vnc_port}', '--listen', f'0.0.0.0:{vnc_port + 10}'])
+
+def start_novnc(vnc_port):
     script_dir = os.path.dirname(__file__)
     novnc_path = os.path.join(script_dir, 'novnc.exe')
     os.environ["PATH"] += os.pathsep + script_dir
-    subprocess.Popen([novnc_path, '--target', f'localhost:{vnc_port}', '--listen', f'0.0.0.0:{vnc_port + 10}'], shell=True)
+    subprocess.Popen([novnc_path, '--target', f'localhost:{vnc_port}', '--listen', f'0.0.0.0:{vnc_port + 10}'])
 
 def get_language():
     return request.args.get('lang', 'en')
@@ -77,27 +80,46 @@ def create_vm():
         cpu_cores = data.get('cpu')
         ram_size = data.get('ram')
         boot_device = data.get('boot_device')
-
-        # New parameters
         cpu_arch = data.get('cpu_arch')
+        machine_type = data.get('machine_type')
         cpu_threads = data.get('cpu_threads')
         network_type = data.get('network')
-        display_type = data.get('display')
         disk_interface = data.get('disk_interface')
-
+        cpu_model = data.get('cpu_option')
+        audio = data.get('audio')
+        topoext = 'on' if 'topoext' in data else 'off'
         vnc_port = find_free_port()
         vnc_display = vnc_port - 5900
 
         os_image_path = os.path.join(UPLOAD_FOLDER, os_image) if os_image.startswith('(uploaded)') else os.path.join(FILES_FOLDER, os_image)
 
+        qemu_binary = {
+            'x86_64': 'qemu-system-x86_64.exe',
+            'aarch64': 'qemu-system-aarch64.exe',
+            'arm': 'qemu-system-arm.exe',
+        }.get(cpu_arch, 'qemu-system-x86_64.exe')
+
         qemu_command = [
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'qemu', 'qemu-system-' + cpu_arch + '.exe'),  # CPU architecture
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'qemu', qemu_binary),
             '-m', str(ram_size),
-            '-smp', f'cores={cpu_cores},threads={cpu_threads}',  # CPU cores and threads
+            '-smp', f'cores={cpu_cores},threads={cpu_threads}',
             '-vnc', f'localhost:{vnc_display}',
-            '-net', f'nic,model={network_type}',  # Network type
-            '-display', display_type,  # Display type
+            '-cpu', f'{cpu_model},topoext={topoext}',
+            '-machine', machine_type,
         ]
+
+        if audio != 'none':
+           qemu_command.extend([ '-audiodev', 'wav,id=audio0'])
+           qemu_command.extend([ '-device', f'{audio},audiodev=audio0'])
+        else:
+           qemu_command.extend([ '-audio', 'none'])
+
+        if cpu_arch == 'x86_64' and network_type == 'user':
+            qemu_command.extend(['-netdev', 'user,id=net0', '-device', 'virtio-net,netdev=net0'])
+
+        elif network_type == 'user':
+            qemu_command.extend(['-netdev', 'user,id=net0', '-device', 'virtio-net-device,netdev=net0'])
+
         if os_image_path:
             qemu_command.extend(['-cdrom', os_image_path])
 
@@ -107,15 +129,16 @@ def create_vm():
             device_type = data.get(f'device_{index}_type')
             if not device_type:
                 break
-            
+
             if device_type == 'harddrive':
                 disk_size = data.get(f'device_{index}_disk_size')
                 if disk_size:
                     disk_image = os.path.join(disks_dir, f'disk_image_{vnc_port}_{disk_count}.qcow2')
                     try:
                         subprocess.run(['qemu-img', 'create', '-f', 'qcow2', disk_image, f'{disk_size}G'], check=True)
-                        disk_device = f'-drive file={disk_image},if={disk_interface},format=qcow2'  # Disk interface
-                        qemu_command.append(disk_device)
+                        disk_device = f'-hd{chr(97 + disk_count)}'
+                        if disk_count < 2:
+                            qemu_command.extend([disk_device, disk_image])
                         disk_count += 1
                     except subprocess.CalledProcessError as e:
                         return jsonify({'success': False, 'error': f'Failed to create hard disk: {str(e)}'})
@@ -132,14 +155,14 @@ def create_vm():
             index += 1
 
         if boot_device == 'cdrom':
-            qemu_command.extend(['-boot', 'd'])  # Boot from CD-ROM
+            qemu_command.extend(['-boot', 'd']) # Boot from CD-ROM
         elif boot_device == 'floppydisk':
-            qemu_command.extend(['-boot', 'f'])  # Boot from floppy
+            qemu_command.extend(['-boot', 'f']) # Boot from floppy
         else:
-            qemu_command.extend(['-boot', 'c'])  # Boot from Hard Disk
-        subprocess.Popen(qemu_command, shell=True)
+            qemu_command.extend(['-boot', 'c']) # Boot from Hard Disk
+        subprocess.Popen(qemu_command)
         start_novnc(vnc_port)
-        return jsonify({'success': True, 'novnc_url': f'https://vmb-30i9.onrender.com:{vnc_port + 10}'})
+        return jsonify({'success': True, 'novnc_url': f'http://localhost:{vnc_port + 10}'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -155,5 +178,4 @@ def upload():
     return jsonify({'success': False})
 
 if __name__ == '__main__':
-    SocketIO(app).run(app, host='0.0.0.0', port=5000, debug=True)
-    
+    SocketIO(app).run(app, host='0.0.0.0', port=5000)
