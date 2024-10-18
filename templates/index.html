@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ translations['welcome'] }}</title>
     <link rel="stylesheet" href="static/styles.css">
+    <style>
+        body { overflow-y: auto; }
+    </style>
 </head>
 <body>
     <header>
@@ -14,6 +17,8 @@
             <option value="uk" {% if translations['lang'] == 'uk' %}selected{% endif %}>Українська</option>
             <option value="es" {% if translations['lang'] == 'es' %}selected{% endif %}>Español</option>
             <option value="de" {% if translations['lang'] == 'de' %}selected{% endif %}>Deutsch</option>
+            <option value="ru" {% if translations['lang'] == 'ru' %}selected{% endif %}>Русский</option>
+            <option value="pl" {% if translations['lang'] == 'pl' %}selected{% endif %}>Polski</option>
         </select>
     </header>
 
@@ -24,6 +29,19 @@
 
             <h3>{{ translations['features'] }}</h3>
             <ul>
+                <li>{{ translations['add_devices_h3'] }}</li>
+                <li>{{ translations['upload'] }}</li>
+                <li>{{ translations['create_harddrive'] }}</li>
+                <li>{{ translations['cpu_architecture'] }}</li>
+                <li>{{ translations['cpu_threads'] }}</li>
+                <li>{{ translations['cpu_option'] }}</li>
+                <li>Topoext CPU</li>
+                <li>KVM CPU</li>
+                <li>{{ translations['machine_type'] }}</li>
+                <li>{{ translations['network_type'] }}</li>
+                <li>{{ translations['audio_type'] }}</li>
+                <li>{{ translations['disk_interface'] }}</li>
+
                 <li>{{ translations['feature_os_select'] }}</li>
                 <li>{{ translations['feature_cpu_cores'] }}</li>
                 <li>{{ translations['feature_ram'] }}</li>
