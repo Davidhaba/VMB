@@ -94,7 +94,7 @@ def create_vm():
         }.get(cpu_arch, 'qemu-system-x86_64.exe')
 
         qemu_command = [
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'qemu', qemu_binary),
+            f'./qemu/{qemu_binary}',
             '-m', str(ram_size),
             '-smp', f'cores={cpu_cores},threads={cpu_threads}',
             '-vnc', f'localhost:{vnc_display}',
